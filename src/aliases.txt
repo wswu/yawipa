@@ -1,0 +1,29 @@
+compound	com
+derived	der
+inherited	inh
+affix	af
+suffix	suf
+prefix	pre
+calque	cal
+back-formation	back-form
+learned borrowing	lbor
+orthographic borrowing	obor
+phono-semantic matching	psm
+unknown	unk
+abbr of	abbreviation of
+alt case	alternative case form of
+alt form	alternative form of
+altform	alternative form of
+alt sp	alternative spelling of
+clip of	clipping of
+dim of	diminutive of
+feminine noun of	female equivalent of
+honor alt case	honorific alternative case form of
+infl of	inflection of
+init of	initialism of
+missp	misspelling of
+obs sp	obsolete spelling of
+rare sp	rare spelling of
+stand sp	standard spelling of
+sup sp	superseded spelling of
+syn of	synonym of
