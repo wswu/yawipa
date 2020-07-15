@@ -1,10 +1,24 @@
-function make_lfe()
+using StringDistances
+
+include("../src/template.jl")
+
+struct Translation
+    lang::String
+    word::String
+    english::String
+    sense::String
+    source::String
+end
+
+distance(s1, s2) = Levenshtein()(s1, s2) / max(length(s1), length(s2))
+
+function extract_translations(path)
     translations = []
 
-    for line in eachline(ARGS[1])
+    for line in eachline(path)
         arr = split(line, '\t')
         
-        if length(arr) < 6
+        if length(arr) < 5
             continue
         end
 
@@ -22,28 +36,42 @@ function make_lfe()
             english = arr[5]
             push!(translations, Translation(lang, word, english, "", "d"))
         elseif rel == "etym"
-            for temp in arr[6:end]
-                items = split(temp, '|')
-                
-                if items[1] != "en" && length(items) >= 3
-                    lang = items[1]
-                    word = items[2]
-                    has_t = false
-                    
-                    # t=xxx in attrs
-                    for elem in items
-                        if startswith(elem, "t=") || startswith(elem, "gloss=") ||
-                        startswith(elem, "gloss1=") ||
-                        startswith(elem, "gloss2=")
-                            push!(translations, Translation(lang, word, elem[findfirst('=', elem):end], "", "e"))
-                            has_t = true
+            for elem in arr[6:end]
+                temp = interpret(["etym", split(elem, '|')...])
+                for attr in temp.attrs
+                    key, value = split(attr, '=')
+                    key = strip(key)
+                    value = strip(value)
+                    m = match(r"^(t|gloss)(\d)", key)
+                    word = ""
+                    if m !== nothing
+                        idx = m.captures[2]
+                        idx = parse(Int, idx)
+                        if idx <= length(temp.content)
+                            word = temp.content[idx]
+                            push!(translations, Translation(temp.lang, word, value, "", "etym-$key"))
+                        else
+                            println(stderr, "bad attr: ", temp)
+                        end
+                    elseif key == "t"
+                        content = filter(x->x != "", temp.content)
+                        if length(content) == 1
+                            word = content[1]
+                            push!(translations, Translation(temp.lang, word, value, "", "etym-$key"))
+                        elseif length(content) == 2 && distance(content[1], content[2]) <= 0.5
+                            # heuristic, if there are two items in content, they might be forms of each other
+                            # TemplateResult("etym", "la", ["necare", "necāre"], ["t=to kill"])
+                            for word in content
+                                push!(translations, Translation(temp.lang, word, value, "", "etym-$key"))
+                            end
+                        else
+                            println(stderr, "bad t:", temp)
                         end
                     end
+                end
 
-                    # fourth item is tr slot
-                    if length(items) >= 4 && items[4] != "" && !has_t
-                        push!(translations, Translation(lang, word, items[4], "", "e"))
-                    end
+                if length(temp.attrs) == 0 && length(temp.content) == 3
+                    push!(translations, Translation(temp.lang, word, temp.content[3], "", "etym-tpos"))
                 end
             end
         end
@@ -54,4 +82,4 @@ function make_lfe()
     end
 end
 
-make_lfe()
+extract_translations(ARGS[1])
