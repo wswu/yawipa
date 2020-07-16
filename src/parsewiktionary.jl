@@ -9,6 +9,7 @@ using Unicode
 
 include("template.jl")
 include("parsers.jl")
+include("other-parsers.jl")
 
 """
 List from https://en.wiktionary.org/wiki/Wiktionary:List_of_languages
@@ -69,19 +70,19 @@ function clean_wiki_markup(text)
 end
 
 """
-    function parse(fout::IO, title::String, content::String, parsers)
+    function parse(fout::IO, title::String, content::String, edition::String, parsers)
 
 Parses a single Wiktionary page.
 
 `parsers` is a list of parsing functions
 """
-function parse(fout::IO, title::String, content::String, parsers)
+function parse(fout::IO, title::String, content::String, edition::String, parsers)
     """Refer to https://en.wiktionary.org/wiki/Wiktionary:Entry_layout"""
     lang = ""
     for (heading, block) in splitblocks(strip(content))
-        # splitblocks() strips the beginning =, so look at the ending ones instead
-        if match(r"[^=]==$", heading) !== nothing  
-            lang = langcode_from_heading(heading)
+        heading_has_lang, lang_code = langcode_from_heading(heading, edition)
+        if heading_has_lang
+            lang = lang_code
             continue
         end
 
@@ -142,9 +143,18 @@ function get_title_and_text(page)
     return (title, text)
 end
 
-function langcode_from_heading(heading)
-    lang = strip(join(collect(graphemes(strip(heading, ['='])))))
-    return get(langname2code, lang, lang)
+function langcode_from_heading(heading, edition="en")
+    if edition == "fr" && 
+            (m = match(r"{{langue\|(.+)}}", heading)) !== nothing
+        lang = m.captures[1]
+        return (true, lang)
+    elseif edition == "en" &&
+            match(r"[^=]==$", heading) !== nothing
+        # splitblocks() strips the beginning =, so look at the ending ones instead
+        lang = strip(join(collect(graphemes(strip(heading, ['='])))))
+        return get(langname2code, lang, lang)
+    end
+    return (false, nothing)
 end
 
 function main(args)
@@ -154,7 +164,7 @@ function main(args)
     skip_regex = Regex(args["skip"])
     prog = ProgressUnknown("pages")
 
-    parsers = [
+    ALL_PARSERS = Dict(
         "pron" => parse_pronunciation,
         "pos" => parse_pos,
 
@@ -181,7 +191,18 @@ function main(args)
 
         "etym" => parse_etymology,
         "formof" => parse_form_of,
-    ]
+
+        "fr-pron" => parse_fr_pronunciation,
+    )
+
+    parsers = []
+    if args["parsers"] == "all"
+        parsers = collect(ALL_PARSERS)
+    else
+        for parser in strip.(split(args["parsers"], ','))
+            push!(parsers, (parser, ALL_PARSERS[parser]))
+        end
+    end
 
     while (item = iterate(reader)) !== nothing
         if reader.type != EzXML.READER_ELEMENT || reader.name != "page"
@@ -196,7 +217,7 @@ function main(args)
         end
         
         println(flog, title)
-        parse(fout, title, text, parsers)
+        parse(fout, title, text, args["edition"], parsers)
         ProgressMeter.next!(prog)
     end
 

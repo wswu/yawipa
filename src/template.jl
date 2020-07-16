@@ -63,3 +63,13 @@ function parsetemplates(text)
     end
     return result
 end
+
+"""does not parse"""
+function matchtemplates(text)
+    result = []
+    for m in eachmatch(GenericTemplate, text)
+        arr = split(m[1], '|')
+        push!(result, arr)
+    end
+    return result
+end
