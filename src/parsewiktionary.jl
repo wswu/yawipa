@@ -83,7 +83,9 @@ function parse(fout::IO, title::String, content::String, edition::String, parser
         heading_has_lang, lang_code = langcode_from_heading(heading, edition)
         if heading_has_lang
             lang = lang_code
-            continue
+            if edition != "es"
+                continue
+            end
         end
 
         heading = strip(heading, ['='])
@@ -92,7 +94,7 @@ function parse(fout::IO, title::String, content::String, edition::String, parser
         for (parse_name, parse_func) in parsers
             output = parse_func(lang, title, heading, block)
             for arr in output
-                println(fout, join([lang, title, parse_name, arr...], '\t'))
+                println(fout, join([lang, title, parse_name, strip.(arr)...], '\t'))
             end
         end
     end
@@ -153,6 +155,10 @@ function langcode_from_heading(heading, edition="en")
         # splitblocks() strips the beginning =, so look at the ending ones instead
         lang = strip(join(collect(graphemes(strip(heading, ['='])))))
         return get(langname2code, lang, lang)
+    elseif edition == "es" &&
+            (m = match(r"{{(.+)\|(.+)}} ?===?", heading)) !== nothing
+        lang = m.captures[2]
+        return (true, lang)
     end
     return (false, nothing)
 end
@@ -193,6 +199,7 @@ function main(args)
         "formof" => parse_form_of,
 
         "fr-pron" => parse_fr_pronunciation,
+        "es-pron" => parse_es_pronunciation,
     )
 
     parsers = []

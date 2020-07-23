@@ -73,3 +73,35 @@ function matchtemplates(text)
     end
     return result
 end
+
+# todo: replace with this
+
+struct TemplateResult2
+    tag::String
+    content::Vector{String}
+    attrs::Vector{String}
+end
+
+function parsetemplates2(text)
+    result = []
+    for m in eachmatch(GenericTemplate, text)
+        arr = split(m[1], '|')
+        push!(result, interpret2(arr))
+    end
+    return result
+end
+
+function interpret2(arr)
+    tag = strip(lowercase(arr[1]))
+    content = String[]
+    attrs = String[]
+    for x in arr[2:end]
+        if occursin('=', x)
+            push!(attrs, strip(x))
+        else
+            push!(content, strip(x))
+        end
+    end
+    return TemplateResult2(tag, content, attrs)
+end
+
