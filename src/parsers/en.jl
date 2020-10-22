@@ -62,7 +62,7 @@ const langname2code = read_languages()
 
 function langcode_from_heading(heading)
     lang = strip(join(collect(graphemes(strip(heading, ['='])))))
-    return get(langname2code, lang, lang)
+    return get(langname2code, lang, nothing)
 end
 
 #---

@@ -52,7 +52,7 @@ function interpret(arr)
         return TemplateResult("", "", [], [])
     end
 
-    return TemplateResult(tag, strip(arr[2]), arr[3:end], attrs)
+    return TemplateResult(tag, iso639_2to3(strip(arr[2])), arr[3:end], attrs)
 end
 
 function parsetemplates(text)

@@ -7,6 +7,7 @@ using ProgressMeter
 using Serialization
 using Unicode
 
+include("langcodes.jl")
 include("template.jl")
 
 abstract type WiktionaryParser end
@@ -69,6 +70,7 @@ function parse(fout::IO, title::String, content::String, edition::String, parser
         if lang_code !== nothing
             lang = lang_code
         end
+        lang = iso639_2to3(lang)
 
         heading = strip(heading, ['='])
         block = clean_wiki_markup(block)
