@@ -8,29 +8,14 @@ using Serialization
 using Unicode
 
 include("template.jl")
-include("parsers.jl")
-include("other-parsers.jl")
 
-"""
-List from https://en.wiktionary.org/wiki/Wiktionary:List_of_languages
-
-See scripts/grab_wiktionary_language_list.jl
-"""
-function read_languages()
-    name2code = Dict{String,String}()
-    for line in eachline(joinpath(@__DIR__, "languages.tsv"))
-        code, names, family = split(line, '\t')
-        names = split(names, ',')
-        for name in names
-            if name ∉ keys(name2code)
-                name2code[name] = code
-            end
-        end
+abstract type WiktionaryParser end
+for file in readdir(joinpath(@__DIR__, "parsers"))
+    f = joinpath(@__DIR__, "parsers", file)
+    if isfile(f)
+        include(f)
     end
-    return name2code
 end
-
-const langname2code = read_languages()
 
 """
     splitblocks(content::String)
@@ -76,22 +61,19 @@ Parses a single Wiktionary page.
 
 `parsers` is a list of parsing functions
 """
-function parse(fout::IO, title::String, content::String, edition::String, parsers)
+function parse(fout::IO, title::String, content::String, edition::String, parser::WiktionaryParser)
     """Refer to https://en.wiktionary.org/wiki/Wiktionary:Entry_layout"""
     lang = ""
     for (heading, block) in splitblocks(strip(content))
-        heading_has_lang, lang_code = langcode_from_heading(heading, edition)
-        if heading_has_lang
+        lang_code = parser.lang_from_heading(heading)
+        if lang_code !== nothing
             lang = lang_code
-            if edition != "es"
-                continue
-            end
         end
 
         heading = strip(heading, ['='])
         block = clean_wiki_markup(block)
 
-        for (parse_name, parse_func) in parsers
+        for (parse_name, parse_func) in parser.parsing_functions
             output = parse_func(lang, title, heading, block)
             for arr in output
                 println(fout, join([lang, title, parse_name, strip.(arr)...], '\t'))
@@ -145,22 +127,13 @@ function get_title_and_text(page)
     return (title, text)
 end
 
-function langcode_from_heading(heading, edition="en")
-    if edition == "fr" && 
-            (m = match(r"{{langue\|(.+)}}", heading)) !== nothing
-        lang = m.captures[1]
-        return (true, lang)
-    elseif edition == "en" &&
-            match(r"[^=]==$", heading) !== nothing
-        # splitblocks() strips the beginning =, so look at the ending ones instead
-        lang = strip(join(collect(graphemes(strip(heading, ['='])))))
-        return get(langname2code, lang, lang)
-    elseif edition == "es" &&
-            (m = match(r"{{(.+)\|(.+)}} ?===?", heading)) !== nothing
-        lang = m.captures[2]
-        return (true, lang)
-    end
-    return (false, nothing)
+camelcase(s) = uppercase(s[1]) * lowercase(s[2:end])
+
+function load_parser(lang)
+    lang = camelcase(lang)
+    eval(Meta.parse("import .$lang"))
+    parser_name = "$lang.$(lang)Parser()"
+    return eval(Meta.parse(parser_name))
 end
 
 function main(args)
@@ -170,44 +143,15 @@ function main(args)
     skip_regex = Regex(args["skip"])
     prog = ProgressUnknown("pages")
 
-    ALL_PARSERS = Dict(
-        "pron" => parse_pronunciation,
-        "pos" => parse_pos,
+    parser = load_parser(args["edition"])
 
-        "alter" => make_parser_col_l("Alternative forms"),
-        "alt form" => simple_parser("alt form"),
-        "cog" => simple_parser("cog"),
-        "cog" => simple_parser("cognate"),
-        "noncog" => simple_parser("noncog"),
-        "noncog" => simple_parser("noncognate"),
-
-        "syn" => make_parser_col_l("Synonyms"),
-        "ant" => make_parser_col_l("Antonyms"),
-        "hyper" => make_parser_col_l("Hypernyms"),
-        "hypo" => make_parser_col_l("Hyponyms"),
-        "mero" => make_parser_col_l("Meronyms"),
-        "holo" => make_parser_col_l("Holonyms"),
-        "coord" => make_parser_col_l("Coordinate terms"),
-        "der" => make_parser_col_l("Derived terms"),
-        "rel" => make_parser_col_l("Related terms"),
-        "desc" => simple_parser("desc"),  # Descendants
-
-        "tr" => parse_translations,
-        "def tr" => parse_definition,
-
-        "etym" => parse_etymology,
-        "formof" => parse_form_of,
-
-        "fr-pron" => parse_fr_pronunciation,
-        "es-pron" => parse_es_pronunciation,
-    )
-
-    parsers = []
-    if args["parsers"] == "all"
-        parsers = collect(ALL_PARSERS)
-    else
-        for parser in strip.(split(args["parsers"], ','))
-            push!(parsers, (parser, ALL_PARSERS[parser]))
+    # filter parsing functions
+    if args["parsers"] != "all"
+        keep = Set(strip.(split(args["parsers"], ',')))
+        for pf in collect(keys(parser.parsing_functions))
+            if pf ∉ keep
+                delete!(parser.parsing_functions, pf)
+            end
         end
     end
 
@@ -224,7 +168,7 @@ function main(args)
         end
         
         println(flog, title)
-        parse(fout, title, text, args["edition"], parsers)
+        parse(fout, title, text, args["edition"], parser)
         ProgressMeter.next!(prog)
     end
 

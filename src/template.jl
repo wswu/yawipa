@@ -92,7 +92,7 @@ function parsetemplates2(text)
 end
 
 function interpret2(arr)
-    tag = strip(lowercase(arr[1]))
+    tag = strip(arr[1])
     content = String[]
     attrs = String[]
     for x in arr[2:end]
