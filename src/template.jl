@@ -105,3 +105,4 @@ function interpret2(arr)
     return TemplateResult2(tag, content, attrs)
 end
 
+strip_heading(x) = strip(x, ['=', ' '])

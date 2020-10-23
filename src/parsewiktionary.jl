@@ -68,9 +68,8 @@ function parse(fout::IO, title::String, content::String, edition::String, parser
     for (heading, block) in splitblocks(strip(content))
         lang_code = parser.lang_from_heading(heading)
         if lang_code !== nothing
-            lang = lang_code
+            lang = iso639_2to3(lang_code)
         end
-        lang = iso639_2to3(lang)
 
         heading = strip(heading, ['='])
         block = clean_wiki_markup(block)
