@@ -62,10 +62,7 @@ function parse_translations(lang, title, heading, text)
             end
         elseif temp.tag == "trad-fin"
             continue
-        elseif startswith(temp.tag, "trad")
-            if length(temp.content) == 0
-                println(temp)
-            end
+        elseif match(r"trad\W*", temp.tag) !== nothing && length(temp.content) > 0
             tr_lang = iso639_2to3(temp.content[1])
             push!(results, (sense, tr_lang, temp.content[2:end]..., temp.attrs...))
         end
