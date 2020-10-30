@@ -39,4 +39,6 @@ function main()
     Yawipa.main(args)
 end
 
-main()
+if abspath(PROGRAM_FILE) == @__FILE__
+    main()
+end

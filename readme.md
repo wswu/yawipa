@@ -26,15 +26,14 @@ It is simple to write a new parser for a Wiktionary edition. The parser for the 
 
 ## Citation
 
-If you found this software useful, please consider citing
+If you found this software useful, please cite
 
 ```
 @inproceedings{wu-yarowsky-2020-yawipa,
     title = "Computational Etymology and Word Emergence",
-    author = "Wu, Winston  and
-      Yarowsky, David",
+    author = "Wu, Winston and Yarowsky, David",
     booktitle = "Proceedings of The 12th Language Resources and Evaluation Conference",
-    month = May,
+    month = "May",
     year = "2020",
     address = "Marseille, France",
     publisher = "European Language Resources Association",
