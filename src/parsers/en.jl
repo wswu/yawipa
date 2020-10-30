@@ -1,7 +1,9 @@
 module En
 
 using Unicode
-using ..Yawipa: WiktionaryParser, parsetemplates, TemplateResult
+using ..Yawipa: WiktionaryParser
+
+include("en/template.jl")
 
 struct EnParser <: WiktionaryParser
     parsing_functions::Dict{String, Function}

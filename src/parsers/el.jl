@@ -22,7 +22,7 @@ end
 
 function parse_pronunciation(::Type{ElParser}, lang, title, heading, text)
     results = []
-    for temp in parsetemplates2(text)
+    for temp in parsetemplates(text)
         # {{ΔΦΑ|a.ðʝa.ˈci.ni.tɔs|a.ði.a.ˈci.ni.tɔs|γλ=el}}
         temp.tag != "ΔΦΑ" && continue
         if length(temp.attrs) > 1

@@ -2,7 +2,7 @@ function parse_es_pronunciation(lang, title, heading, text)
     pron_templates = Set(["pron-graf", "pronunciación"])
 
     results = []
-    for temp in parsetemplates2(text)
+    for temp in parsetemplates(text)
         if temp.tag == "pron-graf"
             if length(temp.content) == 1
                 push!(temp.attrs, "fone=$(temp.content)")

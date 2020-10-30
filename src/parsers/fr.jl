@@ -1,6 +1,6 @@
 module Fr
 
-using ..Yawipa: WiktionaryParser, parsetemplates2, iso639_2to3, strip_heading
+using ..Yawipa: WiktionaryParser, parsetemplates, iso639_2to3, strip_heading
 
 struct FrParser <: WiktionaryParser
     parsing_functions::Dict{String, Function}
@@ -29,7 +29,7 @@ PRON_TEMPLATES = Set(["pron", "phono", "phon"])
 
 function parse_pronunciation(lang, title, heading, text)
     results = []
-    for temp in parsetemplates2(text)
+    for temp in parsetemplates(text)
         temp.tag ∉ PRON_TEMPLATES && continue
         length(temp.content) < 2 && continue
 
@@ -42,7 +42,7 @@ end
 
 function parse_pos(lang, title, heading, text)
     results = []
-    for temp in parsetemplates2(heading)
+    for temp in parsetemplates(heading)
         if temp.tag == "S" && length(temp.content) >= 2 && iso639_2to3(temp.content[2]) == lang
             push!(results, (temp.content[1], temp.content[3:end]..., temp.attrs...))
         end
@@ -55,7 +55,7 @@ function parse_translations(lang, title, heading, text)
 
     results = []
     sense = ""
-    for temp in parsetemplates2(text)
+    for temp in parsetemplates(text)
         if temp.tag == "trad-début"
             if length(temp.content) > 0
                 sense = temp.content[1]

@@ -1,6 +1,6 @@
 module It
 
-using ..Yawipa: WiktionaryParser, parsetemplates2
+using ..Yawipa: WiktionaryParser, parsetemplates
 
 struct ItParser <: WiktionaryParser
     parsing_functions::Dict{String, Function}
@@ -25,7 +25,7 @@ end
 
 function parse_pronunciation(lang, title, heading, text)
     results = []
-    for temp in parsetemplates2(text)
+    for temp in parsetemplates(text)
         temp.tag != "IPA" && continue
         
         for ipa in temp.content
