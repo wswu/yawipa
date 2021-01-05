@@ -2,6 +2,7 @@
 
 A comprehensive and extensible Wiktionary parsing framework. If we don't have a parser for your edition of Wiktionary, please help contribute one!
 
+
 ## Usage
 
 ```
@@ -13,6 +14,7 @@ where DUMP is the Wiktionary XML dump (e.g. [this one](https://dumps.wikimedia.o
 The argument to `--parsers` is a comma-separated list of edition-specific parsing functions defined in the respective `parsers/{lang}.jl`, or "all" to use all available parsing functions.
 
 For advanced filtering, you can specify `--skip SKIP` to skip page titles matching the specified regex.
+
 
 ## Writing your own parser
 
@@ -33,10 +35,25 @@ If you found this software useful, please cite
     title = "Computational Etymology and Word Emergence",
     author = "Wu, Winston and Yarowsky, David",
     booktitle = "Proceedings of The 12th Language Resources and Evaluation Conference",
-    month = "May",
+    month = may,
     year = "2020",
     address = "Marseille, France",
     publisher = "European Language Resources Association",
     url = "https://www.aclweb.org/anthology/2020.lrec-1.397",
+}
+```
+
+If you use the extracted morphological data or translations from etymology glosses, please also cite 
+
+```
+@inproceedings{wu-yarowsky-2020-wiktionary,
+    title = "{W}iktionary Normalization of Translations and Morphological Information",
+    author = "Wu, Winston and Yarowsky, David",
+    booktitle = "Proceedings of the 28th International Conference on Computational Linguistics",
+    month = dec,
+    year = "2020",
+    address = "Barcelona, Spain (Online)",
+    publisher = "International Committee on Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.coling-main.413",
 }
 ```
