@@ -284,7 +284,8 @@ function clean_etymology(text)
     tree = []
     
     for sentence in split(text, ". ")
-        for from in split(sentence, r"[,;]\s+from\s+")
+        # from {{...}}, inherited from {{...}}
+        for from in split(sentence, r"[,;][\w\s]+from\s+")
             from = replace(from, "from " => "")
             current_level = []
 
