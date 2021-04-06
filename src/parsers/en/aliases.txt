@@ -12,12 +12,12 @@ phono-semantic matching	psm
 unknown	unk
 abbr of	abbreviation of
 alt case	alternative case form of
+altcaps	alternative case form of
 alt form	alternative form of
 altform	alternative form of
 alt sp	alternative spelling of
 clip of	clipping of
 dim of	diminutive of
-feminine noun of	female equivalent of
 honor alt case	honorific alternative case form of
 infl of	inflection of
 init of	initialism of

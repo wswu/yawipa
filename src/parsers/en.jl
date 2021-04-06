@@ -15,7 +15,6 @@ struct EnParser <: WiktionaryParser
             "pos" => parse_pos,
 
             "alter" => make_parser_col_l("Alternative forms"),
-            "alt form" => simple_parser("alt form"),
             "cog" => simple_parser("cog"),
             "cog" => simple_parser("cognate"),
             "noncog" => simple_parser("noncog"),
@@ -31,6 +30,7 @@ struct EnParser <: WiktionaryParser
             "der" => make_parser_col_l("Derived terms"),
             "rel" => make_parser_col_l("Related terms"),
             "desc" => simple_parser("desc"),  # Descendants
+            "anagrams" => simple_parser("anagrams"), 
 
             "tr" => parse_translations,
             "def tr" => parse_definition,

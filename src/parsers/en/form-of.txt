@@ -1,6 +1,8 @@
 adj form of
 form of
 inflection of
+noun form of
+participle of
 abbreviation of
 abstract noun of
 accusative of
@@ -18,6 +20,7 @@ alternative typography of
 aphetic form of
 apocopic form of
 archaic form of
+archaic inflection of
 archaic spelling of
 aspirate mutation of
 attributive form of
@@ -39,7 +42,6 @@ definite plural of
 definite singular of
 deliberate misspelling of
 diminutive of
-diminutive plural of
 dual of
 eclipsis of
 eggcorn of
@@ -74,6 +76,7 @@ gerund of
 h-prothesis of
 hard mutation of
 harmonic variant of
+hiatus-filler form of
 honorific alternative case form of
 hy-reformed
 imperative of
@@ -112,10 +115,10 @@ nominative plural of
 nonstandard form of
 nonstandard spelling of
 nuqtaless form of
+ny-obs in Malawi
 obsolete form of
 obsolete spelling of
 obsolete typography of
-participle of
 passive of
 passive participle of
 passive past tense of
@@ -168,6 +171,7 @@ verbal noun of
 vi alternative spelling of
 vocative plural of
 vocative singular of
+word-final anusvara form of
 xiaojing spelling of
 yi-alternatively pointed form of
 yi-phonetic spelling of
