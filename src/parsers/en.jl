@@ -14,7 +14,7 @@ struct EnParser <: WiktionaryParser
             "pron" => parse_pronunciation,
             "pos" => parse_pos,
 
-            "alter" => make_parser_col_l("Alternative forms"),
+            "alter" => parse_alter,
             "cog" => simple_parser("cog"),
             "cog" => simple_parser("cognate"),
             "noncog" => simple_parser("noncog"),
@@ -163,6 +163,45 @@ function simple_parser(tag)
         return results
     end
     return parse_simple
+end
+
+#---
+
+function get_alter_dialect(arr)
+    dialects = []
+    start_dialect = false
+    for elem in arr
+        if elem == ""
+            start_dialect = true
+            continue
+        end
+        if start_dialect
+            push!(dialects, elem)
+        end
+    end
+    return dialects
+end
+
+function parse_alter(lang, title, heading, text)
+    results = []
+    if heading != "Alternative forms"
+        return results
+    end
+
+    for x in parsetemplates(text)
+        if x.tag == "alter"  # {{alter|en|worde||obsolete}}
+            dialects = get_alter_dialect(x.content)
+            for word in x.content
+                if word == ""  # blank before dialect
+                    break
+                end
+                push!(results, [x.lang, word, dialects..., x.attrs...])
+            end
+        elseif x.tag == "l"  # * {{l|en|ravin}}, {{l|en|ravine}}
+            push!(results, [x.lang, x.content..., x.attrs...])
+        end
+    end
+    return results
 end
 
 #---
