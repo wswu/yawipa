@@ -11,6 +11,15 @@ include("langcodes.jl")
 include("template.jl")
 
 abstract type WiktionaryParser end
+
+mutable struct DictKey
+    lang::String
+    word::String
+    pos::String
+end
+
+DictKey() = DictKey("", "", "")
+
 for file in readdir(joinpath(@__DIR__, "parsers"))
     f = joinpath(@__DIR__, "parsers", file)
     if isfile(f)
@@ -48,6 +57,7 @@ end
 
 function clean_wiki_markup(text)
     # remove brackets from [[keepthis]] and [[blah|keepthis]]
+    # TODO: add switch
     text = replace(text, r"\[\[([^\]]+\|)?([^\]]+?)\]\]" => s"\2")
 
     # remove <!-- comments -->
@@ -58,26 +68,28 @@ end
 """
     function parse(fout::IO, title::String, content::String, edition::String, parsers)
 
-Parses a single Wiktionary page.
+Parses a single Wiktionary page. Refer to https://en.wiktionary.org/wiki/Wiktionary:Entry_layout for the page layout.
 
 `parsers` is a list of parsing functions
 """
-function parse(fout::IO, title::String, content::String, edition::String, parser::WiktionaryParser)
-    """Refer to https://en.wiktionary.org/wiki/Wiktionary:Entry_layout"""
-    lang = ""
+function parse_page(fout::IO, title::String, content::String, edition::String, parser::WiktionaryParser)
+    dk = DictKey()
+    dk.word = title
+
     for (heading, block) in splitblocks(strip(content))
         lang_code = parser.lang_from_heading(heading)
         if lang_code !== nothing
-            lang = iso639_2to3(lang_code)
+            dk.lang = iso639_2to3(lang_code)
+            dk.pos = ""  # new language, so reset pos
         end
 
         heading = strip(heading, ['='])
         block = clean_wiki_markup(block)
 
         for (parse_name, parse_func) in parser.parsing_functions
-            output = parse_func(lang, title, heading, block)
+            output = parse_func(dk, heading, block)
             for arr in output
-                println(fout, join([lang, title, parse_name, strip.(arr)...], '\t'))
+                println(fout, join([dk.lang, dk.word, dk.pos, parse_name, strip.(arr)...], '\t'))
             end
         end
     end
@@ -167,9 +179,9 @@ function main(args)
         if match(skip_regex, title) !== nothing
             continue
         end
-        
+
         println(flog, title)
-        parse(fout, title, text, args["edition"], parser)
+        parse_page(fout, title, text, args["edition"], parser)
         ProgressMeter.next!(prog)
     end
 

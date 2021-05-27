@@ -1,18 +1,18 @@
 module En
 
 using Unicode
-using ..Yawipa: WiktionaryParser
+using ..Yawipa: WiktionaryParser, DictKey
 
 include("en/template.jl")
 
 struct EnParser <: WiktionaryParser
-    parsing_functions::Dict{String, Function}
+    parsing_functions::Vector
     lang_from_heading::Function
     
     EnParser() = new(
-         Dict(
-            "pron" => parse_pronunciation,
+        [
             "pos" => parse_pos,
+            "pron" => parse_pronunciation,
 
             "alter" => parse_alter,
             "cog" => simple_parser("cog"),
@@ -33,11 +33,12 @@ struct EnParser <: WiktionaryParser
             "anagrams" => simple_parser("anagrams"), 
 
             "tr" => parse_translations,
-            "def tr" => parse_definition,
+            "def" => parse_definitions,
+            "def tr" => parse_definition_translations,
 
             "etym" => parse_etymology,
             "formof" => parse_form_of
-        ),
+        ],
         langcode_from_heading
     )
 end
@@ -71,7 +72,7 @@ end
 
 const PRONUNCIATION_TAGS = Set(["IPA", "rhymes", "homophones", "hyph"])
 
-function parse_pronunciation(lang, title, heading, text)
+function parse_pronunciation(dk::DictKey, heading, text)
     results = []
     if heading == "Pronunciation"
         for line in split(text, '\n')
@@ -103,8 +104,12 @@ end
 # list from https://en.wiktionary.org/wiki/Wiktionary:Entry_layout#Part_of_speech
 const POS_HEADINGS = Set(readlines(joinpath(@__DIR__, "en", "pos-headings.txt")))
 
-function parse_pos(lang, title, heading, text)
+"""
+Also sets dk.lang
+"""
+function parse_pos(dk::DictKey, heading, text)
     if heading ∈ POS_HEADINGS
+        dk.pos = heading
         return [[heading]]
     else
         return []
@@ -114,7 +119,7 @@ end
 #---
 
 function make_parser_col_l(which_heading)
-    function parse(lang, title, heading, text)
+    function parse(dk::DictKey, heading, text)
         if heading == which_heading
             results = parse_col(text)
             if length(results) == 0
@@ -153,7 +158,7 @@ end
 #---
 
 function simple_parser(tag)
-    function parse_simple(lang, title, heading, text)
+    function parse_simple(dk::DictKey, heading, text)
         results = []
         for x in parsetemplates(text)
             if x.tag == tag
@@ -182,7 +187,7 @@ function get_alter_dialect(arr)
     return dialects
 end
 
-function parse_alter(lang, title, heading, text)
+function parse_alter(dk::DictKey, heading, text)
     results = []
     if heading != "Alternative forms"
         return results
@@ -208,7 +213,7 @@ end
 
 const TRANSLATION_TAGS = Set(["t", "t+", "t-simple"])
 
-function parse_translations(lang, title, heading, text)
+function parse_translations(dk::DictKey, heading, text)
     result = []
     if heading == "Translations"
         sense = ""
@@ -225,9 +230,30 @@ end
 
 #---
 
-function parse_definition(lang, title, heading, text)
+function parse_definitions(dk::DictKey, heading, text)
+    results = []
+    if heading ∈ POS_HEADINGS
+        dk.pos = heading
+        for line in split(text, '\n')
+            arr = split(line, ' ', limit=2)
+            length(arr) != 2 && continue
+
+            # first_space = findfirst(' ', line)
+            # isnothing(first_space) && continue
+
+            bullet, definition = arr
+            if endswith(bullet, "#")  # fits "# ", "## ", etc but not "#: " or "#* "
+                # definition = line[first_space + 1:end]
+                push!(results, [definition])
+            end
+        end
+    end
+    return results
+end
+
+function parse_definition_translations(dk::DictKey, heading, text)
     # only interested in other languages, whose definitions are in English
-    if lang == "en"
+    if dk.lang == "en"
         return []
     end
 
@@ -273,7 +299,7 @@ end
 
 #---
 
-function parse_etymology(lang, title, heading, text)
+function parse_etymology(dk::DictKey, heading, text)
     result = []
     if occursin("Etymology", heading)
         lines = split(text, '\n')
@@ -282,7 +308,7 @@ function parse_etymology(lang, title, heading, text)
             # parse e.g. {{PIE root|en|bʰeh₂|id=speak}} and then continue
             # but may have other templates, including inh and cog
             for x in parsetemplates(lines[1])
-                push!(result, ["$lang|$title", x.tag, x.content..., x.attrs...])
+                push!(result, ["$(dk.lang)|$(dk.word)", x.tag, x.content..., x.attrs...])
             end
             deleteat!(lines, 1)
         end
@@ -290,7 +316,7 @@ function parse_etymology(lang, title, heading, text)
         if length(lines) > 0
             tree = clean_etymology(lines[1])
 
-            curr = ["$lang|$title"]
+            curr = ["$(dk.lang)|$(dk.word)"]
             for level in tree
                 for c in curr
                     for etym_result in level
@@ -355,7 +381,7 @@ end
 # list from https://en.wiktionary.org/wiki/Category:Form-of_templates
 const FORM_OF_TEMPLATES = Set(readlines(joinpath(@__DIR__, "en", "form-of.txt")))
 
-function parse_form_of(lang, title, heading, text)
+function parse_form_of(dk::DictKey, heading, text)
     result = []
     for x in parsetemplates(text)
         if x.tag ∈ FORM_OF_TEMPLATES
