@@ -1,11 +1,5 @@
-module Yawipa
-
-using ArgParse
-using DelimitedFiles
 using EzXML
 using ProgressMeter
-using Serialization
-using Unicode
 
 include("langcodes.jl")
 include("template.jl")
@@ -149,23 +143,19 @@ function load_parser(lang)
     return eval(Meta.parse(parser_name))
 end
 
-function main(args)
-    reader = open(EzXML.StreamReader, args["dump"])
-    fout = open(args["out"], "w")
-    flog = open(args["log"], "w")
-    skip_regex = Regex(args["skip"])
+function parse(dump::String, edition::String, outfile::String, logfile::String, skip_regex::String="", parsers=String[])
+    reader = open(EzXML.StreamReader, dump)
+    fout = open(outfile, "w")
+    flog = open(logfile, "w")
+    skip_regex = Regex(skip_regex)
     prog = ProgressUnknown("pages")
 
-    parser = load_parser(args["edition"])
+    parser = load_parser(edition)
 
     # filter parsing functions
-    if args["parsers"] != "all"
-        keep = Set(strip.(split(args["parsers"], ',')))
-        for pf in collect(keys(parser.parsing_functions))
-            if pf ∉ keep
-                delete!(parser.parsing_functions, pf)
-            end
-        end
+    if length(parsers) > 0
+        keep = Set(parsers)
+        parser.parsing_functions = filter(x -> x[1] ∈ keep, parser.parsing_functions)
     end
 
     while (item = iterate(reader)) !== nothing
@@ -181,12 +171,10 @@ function main(args)
         end
 
         println(flog, title)
-        parse_page(fout, title, text, args["edition"], parser)
+        parse_page(fout, title, text, edition, parser)
         ProgressMeter.next!(prog)
     end
 
     close(reader)
     close(fout)
 end
-
-end  # module

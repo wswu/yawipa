@@ -5,7 +5,7 @@ using ..Yawipa: WiktionaryParser, DictKey
 
 include("en/template.jl")
 
-struct EnParser <: WiktionaryParser
+mutable struct EnParser <: WiktionaryParser
     parsing_functions::Vector
     lang_from_heading::Function
     

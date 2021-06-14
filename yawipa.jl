@@ -1,7 +1,8 @@
-using ArgParse
+import Pkg
+Pkg.activate(".")
 
-include("src/parsewiktionary.jl")
-import .Yawipa
+using Yawipa
+using ArgParse
 
 function get_args()
     s = ArgParseSettings("Yawipa")
@@ -29,14 +30,14 @@ function get_args()
         "--parsers"
             help = "template parsers to use, separated with commas (e.g. 'pron,pos')"
             arg_type = String
-            default = "all"
+            default = ""
     end
     return parse_args(s)
 end
 
-function main()
+    function main()
     args = get_args()
-    Yawipa.main(args)
+    Yawipa.parse(args["dump"], args["edition"], args["out"], args["log"], args["skip"], split(args["parsers"], ','))
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
