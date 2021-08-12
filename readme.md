@@ -16,6 +16,11 @@ The argument to `--parsers` is a comma-separated list of edition-specific parsin
 For advanced filtering, you can specify `--skip SKIP` to skip page titles matching the specified regex.
 
 
+## Data
+
+If you don't want to run the parser and just want the data, look [here](https://cs.jhu.edu/~winston/yawipa-data.html)! These are TSV files that are easy to use in your own applications. They will be updated monthly with the latest Wiktionary dumps.
+
+
 ## Writing your own parser
 
 It is simple to write a new parser for a Wiktionary edition. The parser for the Italian Wiktionary at `src/parsers/it.jl` is a good example of a barebones parser. There are a few things to keep in mind:
