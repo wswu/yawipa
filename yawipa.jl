@@ -35,9 +35,11 @@ function get_args()
     return parse_args(s)
 end
 
-    function main()
+function main()
     args = get_args()
-    Yawipa.parse(args["dump"], args["edition"], args["out"], args["log"], args["skip"], split(args["parsers"], ','))
+    parsers = split(args["parsers"], ',')
+    parsers = parsers == [""] ? [] : parsers
+    Yawipa.parse(args["dump"], args["edition"], args["out"], args["log"], args["skip"], parsers)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
