@@ -1,7 +1,8 @@
+using Downloads
 using EzXML
 
 function main()
-    run(`wget https://en.wiktionary.org/wiki/Wiktionary:List_of_languages`)
+    Downloads.download("https://en.wiktionary.org/wiki/Wiktionary:List_of_languages", "Wiktionary:List_of_languages")
     
     reader = open(EzXML.StreamReader, "Wiktionary:List_of_languages")
     fout = open(joinpath(@__DIR__, "..", "src", "languages.tsv"), "w")
