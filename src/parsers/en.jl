@@ -34,7 +34,7 @@ mutable struct EnParser <: WiktionaryParser
 
             "tr" => parse_translations,
             "def" => parse_definitions,
-            "def tr" => parse_definition_translations,
+            "deftr" => parse_definition_translations,
 
             "etym" => parse_etymology,
             "formof" => parse_form_of
