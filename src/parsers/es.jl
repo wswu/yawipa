@@ -1,12 +1,12 @@
-module Mg
+module Es
 
 using ..Yawipa: WiktionaryParser, DictKey, iso639_2to3, parsetemplates
 
-struct MgParser <: WiktionaryParser
+struct EsParser <: WiktionaryParser
     parsing_functions::Dict{String, Function}
     lang_from_heading::Function
     
-    MgParser() = new(
+    EsParser() = new(
         Dict(
             "pron" => parse_pronunciation
         ),
@@ -15,7 +15,7 @@ struct MgParser <: WiktionaryParser
 end
 
 function langcode_from_heading(heading)
-    m = match(r"==\s*{{=(.+)=}}\s*==", heading)
+    m = match(r"==\s*{{\-(.+)\-}}\s*==", heading)
     if m !== nothing
         return m.captures[1]
     else
@@ -24,13 +24,18 @@ function langcode_from_heading(heading)
 end
 
 function parse_pronunciation(dk::DictKey, heading, text)
+    headtemp = parsetemplates(heading)
+    if length(headtemp) == 1 && headtemp[1].tag == "lengua"
+        dk.lang = iso639_2to3(headtemp[1].content[1])
+    end
+
     results = []
     for temp in parsetemplates(text)
-        if temp.tag == "fanononana" && length(temp.content) >= 2 && temp.content != [""]
-            dk.lang = iso639_2to3(temp.content[2])
-            if temp.content[1] != ""
-                push!(results, [temp.content...])
-            end
+        temp.tag != "pron-graf" && continue
+        
+        for attr in temp.attrs
+            k, v = split(attr, '=')
+            push!(results, (k, v))
         end
     end
     return results

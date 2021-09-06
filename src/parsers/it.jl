@@ -1,6 +1,6 @@
 module It
 
-using ..Yawipa: WiktionaryParser, parsetemplates
+using ..Yawipa: WiktionaryParser, DictKey, parsetemplates
 
 struct ItParser <: WiktionaryParser
     parsing_functions::Dict{String, Function}
@@ -23,7 +23,7 @@ function langcode_from_heading(heading)
     end
 end
 
-function parse_pronunciation(lang, title, heading, text)
+function parse_pronunciation(dk::DictKey, heading, text)
     results = []
     for temp in parsetemplates(text)
         temp.tag != "IPA" && continue

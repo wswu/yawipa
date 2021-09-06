@@ -1,17 +1,19 @@
 module El
 
-using ..Yawipa: WiktionaryParser
+using ..Yawipa: WiktionaryParser, DictKey, iso639_2to3, parsetemplates
 
 struct ElParser <: WiktionaryParser
-    parsers::Dict
+    parsing_functions::Dict
+    lang_from_heading::Function
     ElParser() = new(
         Dict(
             "pron" => parse_pronunciation
-        )
+        ),
+        langcode_from_heading
     )
 end
 
-function langcode_from_heading(::Type{ElParser}, heading)
+function langcode_from_heading(heading)
     m = match(r"==\s*{{\-(.+)\-}}\s*==", heading)
     if m !== nothing
         return m.captures[1]
@@ -20,7 +22,7 @@ function langcode_from_heading(::Type{ElParser}, heading)
     end
 end
 
-function parse_pronunciation(::Type{ElParser}, lang, title, heading, text)
+function parse_pronunciation(dk::DictKey, heading, text)
     results = []
     for temp in parsetemplates(text)
         # {{ΔΦΑ|a.ðʝa.ˈci.ni.tɔs|a.ði.a.ˈci.ni.tɔs|γλ=el}}
@@ -31,7 +33,7 @@ function parse_pronunciation(::Type{ElParser}, lang, title, heading, text)
 
         if length(temp.attrs) == 1
             lang = rsplit(temp.attrs[1], '=')[end]
-            temp.attrs[1] = "lang=$lang"
+            dk.lang = iso639_2to3(lang)
         end
 
         # if "γλ" ∈ keys(temp.attrs)
