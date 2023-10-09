@@ -28,7 +28,7 @@ function get_args()
             arg_type = String
             default = ".*:.*"
         "--parsers"
-            help = "template parsers to use, separated with commas (e.g. 'pron,pos')"
+            help = "template parsers to use, separated with commas (e.g. 'pron,pos'). If no parsers are specified, all available parsers will be used."
             arg_type = String
             default = ""
     end
@@ -37,8 +37,7 @@ end
 
 function main()
     args = get_args()
-    parsers = split(args["parsers"], ',')
-    parsers = parsers == [""] ? [] : parsers
+    parsers = split(args["parsers"], ',', keepempty=false)
     Yawipa.parse(args["dump"], args["edition"], args["out"], args["log"], args["skip"], parsers)
 end
 
