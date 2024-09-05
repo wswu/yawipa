@@ -6,19 +6,19 @@ A comprehensive and extensible Wiktionary parsing framework. If we don't have a 
 ## Usage
 
 ```
-julia yawipa.jl --dump DUMP --out OUT --log LOG --parsers all
+julia yawipa.jl --edition en --dump DUMP --out OUT --log LOG
 ```
 
 where DUMP is the Wiktionary XML dump (e.g. [this one](https://dumps.wikimedia.org/enwiktionary/latest/enwiktionary-latest-pages-articles.xml.bz2) for the English Wiktionary). 
 
-The argument to `--parsers` is a comma-separated list of edition-specific parsing functions defined in the respective `parsers/{lang}.jl`, or "all" to use all available parsing functions.
+The argument to `--parsers` is a comma-separated list of edition-specific parsing functions defined in the respective `parsers/{lang}.jl`. If not specified, it will run all available parsing functions.
 
 For advanced filtering, you can specify `--skip SKIP` to skip page titles matching the specified regex.
 
 
 ## Data
 
-If you don't want to run the parser and just want the data, look [here](https://cs.jhu.edu/~winston/yawipa-data.html)! These are TSV files that are easy to use in your own applications. They will be updated monthly with the latest Wiktionary dumps.
+If you don't want to run the parser and just want the data, look [here](https://cs.jhu.edu/~winston/yawipa-data.html)! These are TSV files that are easy to use in your own applications.
 
 
 ## Writing your own parser
